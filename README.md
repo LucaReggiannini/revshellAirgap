@@ -55,7 +55,7 @@ flowchart TD
 
 ## How to test
 
-**Warning: The following procedure is for setting up devices from an Arch Linux operating system. However, most of the guide is also valid for other systems.**
+**Warning: The following procedure is for setting up devices from an Arch Linux operating system. The procedure has been intentionally made vague to avoid promoting the misuse of this code. Any requests for assistance regarding the use or setup of this POC will be ignored.**
 
 1. Insert the following indexes in Arduino IDE, separated by commas:
    * ATtiny Core for ATtiny85: `http://drazzy.com/package_drazzy.com_index.json`
@@ -64,50 +64,24 @@ flowchart TD
 <img src="board manager.png" width="800" alt="board manager.png">
 
 3. Download the DigiKeyboard library from `https://github.com/LucaReggiannini/digikeyboard-library` and follow the instructions on GitHub page to install
-4. From `https://github.com/micronucleus/micronucleus/blob/master/commandline/49-micronucleus.rules` insert the following code into `/etc/udev/rules.d/49-micronucleus.rules` to be able to upload your sketch on ATtiny85 device (Linux only):
+4. Needed UDEV Rules for ATtiny85 (from `https://github.com/micronucleus/micronucleus/blob/master/commandline/49-micronucleus.rules`). `/etc/udev/rules.d/49-micronucleus.rules`:
 ```bash
-# UDEV Rules for Micronucleus boards including the Digispark.
-# This file must be placed at:
-#
-# /etc/udev/rules.d/49-micronucleus.rules    (preferred location)
-#   or
-# /lib/udev/rules.d/49-micronucleus.rules    (req'd on some broken systems)
-#
-# To install, type these commands in a terminal:
-#   sudo cp 49-micronucleus.rules /etc/udev/rules.d/49-micronucleus.rules
-#   sudo udevadm control --reload-rules
-#
-# After this file is copied, physically unplug and reconnect the board.
-#
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="16d0", ATTRS{idProduct}=="0753", MODE:="0666"
 KERNEL=="ttyACM*", ATTRS{idVendor}=="16d0", ATTRS{idProduct}=="0753", MODE:="0666", ENV{ID_MM_DEVICE_IGNORE}="1"
-#
-# If you share your linux system with other users, or just don't like the
-# idea of write permission for everybody, you can replace MODE:="0666" with
-# OWNER:="yourusername" to create the device owned by you, or with
-# GROUP:="somegroupname" and mange access using standard unix groups.
 ```
-5. Additionally, to be able to upload your sketch on ESP8266, you need to have the right permissions for the `/dev/ttyUSBX` file used by the device (Linux only). You need to reboot after the following commands:
+5. Right permissions for the `/dev/ttyUSBX` file for ESP8266 (reboot is required):
 ```bash
 me@macbook:~$ ls -l /dev/ttyUSB0
 crw-rw---- 1 root uucp 188, 0 Dec 20 05:16 /dev/ttyUSB0
 me@macbook:~$ sudo usermod -aG uucp $USER
 ```
-6. Read carefully the "ATtiny85Keyboard.ino" and "Esp8266AP.ino" source code to change the variables based on your testing environment (IP, PORT, PnP Device ID...)
-7. Upload the "ATtiny85Keyboard.ino" sketch to the ATtiny85 (Micronucleus bootloader). When you plug it in, it runs the Micronucleus bootloader for a few seconds and then starts the sketch (which enumerates as a USB HID keyboard), so the Arduino IDE may prompt you to unplug and replug the device during flashing
-8. Upload the "Esp8266AP.ino" sketch to the ESP8266. The Arduino IDE will ask you to select the `/dev/ttyUSBX` port the device is connected to
-9. Configure a listener (for example using Netcat) on your server, based on the IP/Port combination you entered in the "Esp8266AP.ino" file (you may need to configure a Port Forwarding Rule on your router)
-10. Setup your Wi-Fi Rogue Access Point
-11. Attach the ESP8266 device (wait for USB drivers to be installed) on the target Windows host
-11. Attach the ATtiny85 device and wait for the payload to be executed
-13. You should see an incoming connection on your listener 
+6. Upload sketches
 
 ## Final notes
 
 * This approach works even if the target is network-isolated (by firewall rules, security policies and similar): the reverse shell is carried over the rogue Wi-Fi Access Point and the target’s network interfaces are never used. No traffic will be generated or monitored (Warning: while the target host generates no network traffic, the upstream connection, from ESP8266/AP to your server, is unencrypted by default and may be monitored or logged by networks/providers along the path!)
-* You need physical access to plug in the BadUSB devices. Every time you want to interact with the shell the USB module must stay within Wi-Fi range of your Access Point
-* With only ~512 bytes of memory on the ATtiny85, the bootstrap must remain minimal. However, it still includes enough logic to keep enumerating serial ports even if the USB module is unplugged/plugged back in, forward data to/from the virtual COM port, and automatically re-establish the session after link drops. Because of these memory limitations, the POC is volatile: it lasts only until reboot or user logoff; persistence is out of scope and must be implemented separately
-* It is possible to extend this PoC, for example by porting the bootstrap to Linux targets or by using a cellular data link (2G/3G/4G/5G) instead of Wi-Fi to remove Wi-Fi range constraints during interaction. These enhancements are out of scope for the current PoC.
+* Physical access is needed to plug in the BadUSB devices. Every time you want to interact with the shell the USB module must stay within Wi-Fi range of your Access Point
+* With only ~512 bytes of memory on the ATtiny85, the bootstrap must remain minimal. However, it still includes enough logic to keep enumerating serial ports even if the USB module is unplugged/plugged back in, forward data to/from the virtual COM port, and automatically re-establish the session after link drops. Because of these memory limitations, the POC is volatile: it lasts only until reboot or user logoff; persistence is out of scope and will not be implemented in the POC 
 * I've seen that many ESP8266s, while seemingly similar, behave very differently, so you may need to rewrite the bootstrap payload logic or change the PnP Device ID. In my case, I saw it was detected as a virtual COM port and was able to enumerate the Device ID with:
 ```powershell
 PS C:\Users\me> Get-PnpDevice -Class Ports |

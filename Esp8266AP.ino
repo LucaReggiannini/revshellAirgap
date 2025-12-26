@@ -4,7 +4,7 @@
 #include <WiFiClient.h>
 
 /*
-Proof of concept (AUTHORIZED testing only).
+Proof of concept (for AUTHORIZED testing only).
 
 ESP8266 TCP <-> UART bridge:
 - Connects to a configured Wi-Fi network
@@ -14,8 +14,8 @@ ESP8266 TCP <-> UART bridge:
 
 ESP8266WiFiMulti WiFiMulti;
 
-const char* HOST = "123.123.123.123"; // REMOTE PUBLIC IP
-const uint16_t PORT = 1337;           // REMOTE PORT
+const char* HOST = "123.123.123.123"; // Remote Public IP
+const uint16_t PORT = 1337;           // Remote Port
 
 unsigned long lastWiFiCheck = 0;
 const unsigned long wifiCheckInterval = 5000;
@@ -26,7 +26,7 @@ void setup() {
   
   WiFi.mode(WIFI_STA);
   WiFi.setSleepMode(WIFI_NONE_SLEEP); // Disable sleep mode to prevent connection drops and lag
-  WiFiMulti.addAP("SSID", "PASSWORD"); // ROGUE SSID/PASSWORD HERE
+  WiFiMulti.addAP("SSID", "PASSWORD"); // Access Point SSID/PASSWORD
 }
 
 void loop() {

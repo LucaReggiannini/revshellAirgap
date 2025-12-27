@@ -70,7 +70,7 @@ flowchart TD
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="16d0", ATTRS{idProduct}=="0753", MODE:="0666"
 KERNEL=="ttyACM*", ATTRS{idVendor}=="16d0", ATTRS{idProduct}=="0753", MODE:="0666", ENV{ID_MM_DEVICE_IGNORE}="1"
 ```
-5. Permissions for the `/dev/ttyUSBX` file for ESP8266:
+* Permissions for the `/dev/ttyUSBX` file for ESP8266:
 ```bash
 me@macbook:~$ ls -l /dev/ttyUSB0
 crw-rw---- 1 root uucp 188, 0 Dec 20 05:16 /dev/ttyUSB0
